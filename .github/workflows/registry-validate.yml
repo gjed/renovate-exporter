@@ -1,0 +1,38 @@
+name: Registry Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  registry-validate:
+    name: Registry Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Weaver
+        uses: ./.github/actions/setup-weaver
+        with:
+          weaver-version: "0.12.0"
+
+      - name: Check registry schema
+        run: weaver registry check -r registry/
+
+      - name: Resolve registry (dump for inspection)
+        run: |
+          weaver registry resolve -r registry/ > /tmp/resolved-registry.yaml
+
+      - name: Upload resolved registry
+        uses: actions/upload-artifact@v4
+        with:
+          name: resolved-registry
+          path: /tmp/resolved-registry.yaml
+
+      - name: Smoke-test registry emit
+        run: |
+          weaver registry emit \
+            -r registry/ \
+            --inactivity-timeout 10
