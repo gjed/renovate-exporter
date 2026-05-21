@@ -31,12 +31,12 @@ check-schema: ## Validate OTel Weaver registry
 generate: ## Generate Go constants and Grafana dashboard from Weaver registry
 	$(WEAVER) registry generate \
 		-r registry/ \
-		--templates templates/go/ \
+		--templates templates/ \
 		go \
 		internal/semconv/
 	$(WEAVER) registry generate \
 		-r registry/ \
-		--templates templates/grafana/ \
+		--templates templates/ \
 		grafana \
 		dashboards/
 

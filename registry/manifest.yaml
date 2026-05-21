@@ -3,7 +3,6 @@ description: OTel semantic convention registry for the renovate-github-exporter 
 schema_url: https://github.com/gjed/renovate-exporter/schemas/0.1.0
 
 # Pin the official OTel semantic conventions version we depend on.
-# This ensures our custom attributes/signals don't clash with upstream definitions.
 dependencies:
   - name: otel
-    registry_path: https://github.com/open-telemetry/semantic-conventions@v1.41.1[model]
+    registry_path: https://github.com/open-telemetry/semantic-conventions/archive/refs/tags/v1.41.1.zip[model]
