@@ -1,0 +1,11 @@
+targets:
+  - name: multi
+    auth:
+      token: ghp_test
+    orgs:
+      - org: orgA
+        include_repos:
+          - "carbonio-*"
+      - org: orgB
+        exclude_repos:
+          - "*-i18n"

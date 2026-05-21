@@ -1,0 +1,9 @@
+targets:
+  - name: myorg
+    auth:
+      app:
+        app_id: 12345
+        installation_id: 67890
+        private_key_env: TEST_GITHUB_APP_KEY
+    orgs:
+      - org: myorg

@@ -1,0 +1,7 @@
+targets:
+  - name: myorg
+    auth:
+      token: ghp_test
+    repos:
+      - zextras/carbonio-files-ce
+      - zextras/carbonio-auth

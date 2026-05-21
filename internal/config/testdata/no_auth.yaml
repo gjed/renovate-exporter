@@ -1,0 +1,5 @@
+targets:
+  - name: myorg
+    auth: {}
+    orgs:
+      - org: myorg
