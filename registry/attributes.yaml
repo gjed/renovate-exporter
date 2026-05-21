@@ -1,118 +1,100 @@
-groups:
-  - id: attr.github
-    type: attribute_group
-    brief: GitHub-related attributes used across metrics.
-    attributes:
-      - id: github.org
-        type: string
-        stability: development
-        brief: GitHub organization or user account name.
-        examples: ["my-org", "acme-corp"]
-        requirement_level: required
+file_format: definition/2
+attributes:
+  - key: github.org
+    type: string
+    stability: development
+    brief: GitHub organization or user account name.
+    note: Used on all GitHub metrics to identify the org or user being monitored.
+    examples: ["my-org", "acme-corp"]
 
-      - id: github.repo
-        type: string
-        stability: development
-        brief: GitHub repository name (without org prefix).
-        examples: ["renovate-exporter", "my-app"]
-        requirement_level: required
+  - key: github.repo
+    type: string
+    stability: development
+    brief: GitHub repository name (without org prefix).
+    examples: ["renovate-exporter", "my-app"]
 
-      - id: github.pr.state
-        type:
-          allow_custom_values: false
-          members:
-            - id: open
-              value: "open"
-              stability: development
-              brief: Pull request is open.
-            - id: closed
-              value: "closed"
-              stability: development
-              brief: Pull request is closed (merged or unmerged).
-            - id: draft
-              value: "draft"
-              stability: development
-              brief: Pull request is a draft.
-        stability: development
-        brief: Current state of the pull request.
-        examples: ["open", "closed", "draft"]
-        requirement_level: required
+  - key: github.pr.state
+    type:
+      allow_custom_values: false
+      members:
+        - id: open
+          value: "open"
+          stability: development
+          brief: Pull request is open.
+        - id: closed
+          value: "closed"
+          stability: development
+          brief: Pull request is closed (merged or unmerged).
+        - id: draft
+          value: "draft"
+          stability: development
+          brief: Pull request is a draft.
+    stability: development
+    brief: Current state of the pull request.
+    examples: ["open", "closed", "draft"]
 
-      - id: github.pr.label
-        type: string
-        stability: development
-        brief: A label applied to the pull request.
-        examples: ["renovate", "dependencies", "automerge"]
-        requirement_level: opt_in
+  - key: github.pr.label
+    type: string
+    stability: development
+    brief: A label applied to the pull request.
+    examples: ["renovate", "dependencies", "automerge"]
 
-      - id: github.pr.review_status
-        type:
-          allow_custom_values: false
-          members:
-            - id: approved
-              value: "approved"
-              stability: development
-              brief: PR has been approved by at least one reviewer.
-            - id: changes_requested
-              value: "changes_requested"
-              stability: development
-              brief: At least one reviewer has requested changes.
-            - id: pending
-              value: "pending"
-              stability: development
-              brief: Review has been requested but not yet completed.
-            - id: none
-              value: "none"
-              stability: development
-              brief: No review has been requested or submitted.
-        stability: development
-        brief: Aggregate review status of the pull request.
-        examples: ["approved", "changes_requested", "pending", "none"]
-        requirement_level: opt_in
+  - key: github.pr.review_status
+    type:
+      allow_custom_values: false
+      members:
+        - id: approved
+          value: "approved"
+          stability: development
+          brief: PR has been approved by at least one reviewer.
+        - id: changes_requested
+          value: "changes_requested"
+          stability: development
+          brief: At least one reviewer has requested changes.
+        - id: pending
+          value: "pending"
+          stability: development
+          brief: Review has been requested but not yet completed.
+        - id: none
+          value: "none"
+          stability: development
+          brief: No review has been requested or submitted.
+    stability: development
+    brief: Aggregate review status of the pull request.
+    examples: ["approved", "changes_requested", "pending", "none"]
 
-      - id: github.issue.label
-        type: string
-        stability: development
-        brief: A label applied to the GitHub issue.
-        examples: ["bug", "enhancement", "renovate"]
-        requirement_level: opt_in
+  - key: github.issue.label
+    type: string
+    stability: development
+    brief: A label applied to the GitHub issue.
+    examples: ["bug", "enhancement", "renovate"]
 
-  - id: attr.renovate
-    type: attribute_group
-    brief: Renovate-bot specific attributes.
-    attributes:
-      - id: renovate.dashboard.section
-        type:
-          allow_custom_values: true
-          members:
-            - id: awaiting_schedule
-              value: "awaiting-schedule"
-              stability: development
-              brief: PRs awaiting their scheduled window.
-            - id: rate_limited
-              value: "rate-limited"
-              stability: development
-              brief: PRs currently rate-limited by Renovate.
-            - id: pending_approval
-              value: "pending-approval"
-              stability: development
-              brief: PRs waiting for manual approval.
-            - id: pending
-              value: "pending"
-              stability: development
-              brief: PRs pending creation or update.
-        stability: development
-        brief: Section within the Renovate dependency dashboard issue.
-        examples: ["awaiting-schedule", "rate-limited", "pending-approval", "pending"]
-        requirement_level: required
+  - key: renovate.dashboard.section
+    type:
+      allow_custom_values: true
+      members:
+        - id: awaiting_schedule
+          value: "awaiting-schedule"
+          stability: development
+          brief: PRs awaiting their scheduled window.
+        - id: rate_limited
+          value: "rate-limited"
+          stability: development
+          brief: PRs currently rate-limited by Renovate.
+        - id: pending_approval
+          value: "pending-approval"
+          stability: development
+          brief: PRs waiting for manual approval.
+        - id: pending
+          value: "pending"
+          stability: development
+          brief: PRs pending creation or update.
+    stability: development
+    brief: Section within the Renovate dependency dashboard issue.
+    examples: ["awaiting-schedule", "rate-limited", "pending-approval", "pending"]
 
-  - id: attr.exporter
-    type: attribute_group
-    brief: Attributes describing the exporter's own operation.
-    attributes:
-      - id: exporter.target
-        type: string
-        stability: development
-        brief: The configured scrape target identifier (e.g., org/repo slug).
-        examples: ["my-org/renovate-exporter", "acme-corp/platform"]
-        requirement_level: required
+  - key: exporter.target
+    type: string
+    stability: development
+    brief: The configured scrape target identifier (e.g., org/repo slug).
+    examples: ["my-org/renovate-exporter", "acme-corp/platform"]

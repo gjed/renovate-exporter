@@ -1,0 +1,10 @@
+templates:
+  - template: metrics.go.j2
+    filter: '.groups | map(select(.type == "metric"))'
+    application_mode: single
+    file_name: metrics.go
+
+  - template: attributes.go.j2
+    filter: '.groups | map(select(.type == "attribute_group"))'
+    application_mode: single
+    file_name: attributes.go
