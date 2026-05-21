@@ -1,0 +1,204 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  check-generated:
+    name: Check Generated Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run make generate
+        run: make generate
+
+      - name: Fail if generated files are stale
+        run: |
+          if ! git diff --exit-code; then
+            echo "Generated files are stale. Run 'make generate' and commit the result."
+            git diff
+            exit 1
+          fi
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
+      - name: Run tests
+        run: |
+          gotestsum \
+            --junitfile test-results.xml \
+            -- \
+            -race \
+            -coverprofile=coverage.out \
+            -covermode=atomic \
+            ./...
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+
+      - name: Post coverage comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = fs.readFileSync('coverage.out', 'utf8');
+            const lines = coverage.split('\n');
+            // Parse total coverage from last line
+            const totalLine = lines.filter(l => l.startsWith('total:')).pop();
+            if (!totalLine) return;
+            const pct = totalLine.match(/[\d.]+%/)?.[0] ?? 'unknown';
+            const body = `### Test Coverage\n\nTotal coverage: **${pct}**`;
+            // Find existing comment and update, or create new
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.startsWith('### Test Coverage')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build
+        env:
+          GOOS: linux
+          GOARCH: amd64
+        run: go build ./...
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    # Only run on PRs targeting main, not on every feature branch push
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Weaver
+        uses: ./.github/actions/setup-weaver
+        with:
+          weaver-version: "0.12.0"
+
+      - name: Build exporter binary
+        run: go build -o ./bin/renovate-exporter ./cmd/renovate-exporter/
+
+      - name: Start mock GitHub API server
+        run: |
+          go run ./tests/integration/mockserver/ &
+          echo "MOCK_SERVER_PID=$!" >> "$GITHUB_ENV"
+          # Wait for mock server to be ready
+          for i in $(seq 1 10); do
+            if curl -sf http://localhost:18080/health > /dev/null 2>&1; then
+              echo "Mock server ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Start exporter and wait for healthz
+        run: |
+          ./bin/renovate-exporter \
+            --config tests/integration/config.yaml \
+            --github-api-base-url http://localhost:18080 &
+          echo "EXPORTER_PID=$!" >> "$GITHUB_ENV"
+          # Wait for exporter to be ready
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9090/healthz > /dev/null 2>&1; then
+              echo "Exporter ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Weaver live-check
+        run: |
+          weaver registry live-check \
+            -r registry/ \
+            --inactivity-timeout 30
+
+      - name: Stop exporter and mock server
+        if: always()
+        run: |
+          [ -n "$EXPORTER_PID" ] && kill "$EXPORTER_PID" || true
+          [ -n "$MOCK_SERVER_PID" ] && kill "$MOCK_SERVER_PID" || true
