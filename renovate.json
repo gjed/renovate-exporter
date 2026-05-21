@@ -1,0 +1,54 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "_comment": "Renovate is the sole dependency manager for this repo. Dependabot is NOT used — Renovate covers Go modules, GitHub Actions, and Node.js (semantic-release plugins). See .github/CODEOWNERS and design.md for details.",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "Go dependencies"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchFileNames": ["package.json"],
+      "groupName": "semantic-release plugins",
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track Weaver version in setup-weaver composite action",
+      "fileMatch": ["^\\.github/actions/setup-weaver/action\\.yml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>[^\\s]+)\\s+default: \"(?<currentValue>[^\"]+)\""
+      ],
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Track Weaver version used in workflow files",
+      "fileMatch": [
+        "^\\.github/workflows/.*\\.yml$",
+        "^\\.github/workflows/.*\\.yaml$"
+      ],
+      "matchStrings": [
+        "weaver-version: \"(?<currentValue>[^\"]+)\"\\s*# weaver"
+      ],
+      "depNameTemplate": "open-telemetry/weaver",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    }
+  ]
+}
