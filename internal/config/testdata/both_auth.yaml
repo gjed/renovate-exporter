@@ -1,0 +1,10 @@
+targets:
+  - name: myorg
+    auth:
+      token: ghp_test
+      app:
+        app_id: 12345
+        installation_id: 67890
+        private_key_path: /tmp/key.pem
+    orgs:
+      - org: myorg

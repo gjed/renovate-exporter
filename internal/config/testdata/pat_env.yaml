@@ -1,0 +1,6 @@
+targets:
+  - name: myorg
+    auth:
+      token_env: TEST_GITHUB_TOKEN
+    orgs:
+      - org: myorg
