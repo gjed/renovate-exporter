@@ -1,10 +1,2 @@
 # Default owner for everything in the repo
-* @gjed/renovate-exporter-maintainers
-
-# CI and release pipeline
-.github/ @gjed/renovate-exporter-maintainers
-.goreleaser.yaml @gjed/renovate-exporter-maintainers
-.releaserc.js @gjed/renovate-exporter-maintainers
-
-# OTel registry schema
-registry/ @gjed/renovate-exporter-maintainers
+* @gjed
