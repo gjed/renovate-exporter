@@ -8,9 +8,13 @@ package semconv
 // All metric instrumentation MUST reference these constants — no magic strings.
 const (
 {% for group in ctx %}
-	// Metric{{ group.metric_name | pascal_case_const }} is the metric name for {{ group.metric_name }}.
+{%- set id = group.metric_name | pascal_case_const
+              | replace("Githubexporter", "GitHubExporter")
+              | replace("Otlp", "OTLP")
+              | replace("Github", "GitHub") -%}
+	// Metric{{ id }} is the metric name for {{ group.metric_name }}.
 	// {{ group.brief }}
 	// Instrument: {{ group.instrument }}, Unit: {{ group.unit }}, Stability: {{ group.stability }}
-	Metric{{ group.metric_name | pascal_case_const }} = "{{ group.metric_name }}"
+	Metric{{ id }} = "{{ group.metric_name }}"
 {% endfor %}
 )

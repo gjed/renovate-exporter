@@ -114,6 +114,12 @@ func (p *Provider) MeterProvider() *metric.MeterProvider {
 	return p.mp
 }
 
+// ForceFlush triggers an immediate export of all pending metrics.
+// Useful in tests to ensure data reaches the OTLP receiver before assertions.
+func (p *Provider) ForceFlush(ctx context.Context) error {
+	return p.mp.ForceFlush(ctx)
+}
+
 // Shutdown flushes pending metrics and stops the Prometheus HTTP server.
 // Call this on SIGTERM/SIGINT to ensure a final push is attempted.
 func (p *Provider) Shutdown(ctx context.Context) error {
@@ -164,7 +170,7 @@ func (p *Provider) newHTTPExporter(ctx context.Context, cfg Config) (metric.Expo
 	if err != nil {
 		return nil, err
 	}
-	return &errorCountingExporter{inner: exp, logger: p.logger}, nil
+	return &errorCountingExporter{inner: exp, logger: p.logger, target: cfg.Target}, nil
 }
 
 func (p *Provider) newGRPCExporter(ctx context.Context, cfg Config) (metric.Exporter, error) {
@@ -189,7 +195,7 @@ func (p *Provider) newGRPCExporter(ctx context.Context, cfg Config) (metric.Expo
 	if err != nil {
 		return nil, err
 	}
-	return &errorCountingExporter{inner: exp, logger: p.logger}, nil
+	return &errorCountingExporter{inner: exp, logger: p.logger, target: cfg.Target}, nil
 }
 
 func (p *Provider) startPrometheusServer(addr string, reg *prometheus.Registry) *http.Server {

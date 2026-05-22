@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
@@ -57,8 +56,13 @@ func TestLiveCheck_ConformsToSchema(t *testing.T) {
 	// Emit conforming metrics using generated semconv constants.
 	emitConformingMetrics(t, p)
 
-	// Wait for at least one collection cycle before starting live-check.
-	time.Sleep(800 * time.Millisecond)
+	// ForceFlush pushes pending metric data immediately rather than waiting
+	// for the next PeriodicReader cycle, eliminating timing flakiness.
+	flushCtx, flushCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer flushCancel()
+	if err := p.ForceFlush(flushCtx); err != nil {
+		t.Logf("ForceFlush warning: %v", err) // non-fatal; live-check will still receive data
+	}
 
 	// Run `weaver registry live-check` against our registry.
 	// It connects to the OTLP endpoint, receives metrics, and validates them.
@@ -105,7 +109,12 @@ func TestLiveCheck_SchemaViolationDetected(t *testing.T) {
 
 	// Deliberately violate the schema: use an integer for github.org (must be string).
 	emitViolatingMetrics(t, p)
-	time.Sleep(800 * time.Millisecond)
+
+	flushCtx, flushCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer flushCancel()
+	if err := p.ForceFlush(flushCtx); err != nil {
+		t.Logf("ForceFlush warning: %v", err)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -154,19 +163,19 @@ func emitConformingMetrics(t *testing.T, p *exporter.Provider) {
 	t.Helper()
 	meter := p.MeterProvider().Meter("integration-test")
 
-	prCount, err := meter.Int64UpDownCounter(sc.MetricGithubPrCount)
+	prCount, err := meter.Int64UpDownCounter(sc.MetricGitHubPrCount)
 	if err != nil {
 		t.Fatalf("create pr.count: %v", err)
 	}
 	prCount.Add(context.Background(), 5,
 		metric.WithAttributes(
-			attribute.String(sc.AttrGithubOrg, "test-org"),
-			attribute.String(sc.AttrGithubRepo, "test-repo"),
-			attribute.String(sc.AttrGithubPrState, sc.AttrGithubPrStateOpen),
+			attribute.String(sc.AttrGitHubOrg, "test-org"),
+			attribute.String(sc.AttrGitHubRepo, "test-repo"),
+			attribute.String(sc.AttrGitHubPrState, sc.AttrGitHubPrStateOpen),
 		),
 	)
 
-	scrapeDur, err := meter.Float64Histogram(sc.MetricGithubexporterScrapeDuration)
+	scrapeDur, err := meter.Float64Histogram(sc.MetricGitHubExporterScrapeDuration)
 	if err != nil {
 		t.Fatalf("create scrape.duration: %v", err)
 	}
@@ -183,16 +192,16 @@ func emitViolatingMetrics(t *testing.T, p *exporter.Provider) {
 	t.Helper()
 	meter := p.MeterProvider().Meter("integration-test-bad")
 
-	prCount, err := meter.Int64UpDownCounter(sc.MetricGithubPrCount)
+	prCount, err := meter.Int64UpDownCounter(sc.MetricGitHubPrCount)
 	if err != nil {
 		t.Fatalf("create pr.count: %v", err)
 	}
 	// VIOLATION: github.org must be string, not int.
 	prCount.Add(context.Background(), 3,
 		metric.WithAttributes(
-			attribute.Int(sc.AttrGithubOrg, 42), // wrong type: int instead of string
-			attribute.String(sc.AttrGithubRepo, "test-repo"),
-			attribute.String(sc.AttrGithubPrState, sc.AttrGithubPrStateOpen),
+			attribute.Int(sc.AttrGitHubOrg, 42), // wrong type: int instead of string
+			attribute.String(sc.AttrGitHubRepo, "test-repo"),
+			attribute.String(sc.AttrGitHubPrState, sc.AttrGitHubPrStateOpen),
 		),
 	)
 }

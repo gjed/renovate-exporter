@@ -3,41 +3,68 @@ package exporter
 import (
 	"context"
 	"log/slog"
+	"sync"
 
-	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
+	sc "github.com/gjed/renovate-exporter/internal/semconv"
 )
 
 // errorCountingExporter wraps an OTLP metric.Exporter. When Export returns an
-// error it logs a warning and records the failure so the exporter keeps running
-// (task 3.5). The otlp.errors counter is recorded via the global MeterProvider
-// once it is initialised; for the bootstrap window we just log.
+// error it logs a warning and increments the github_exporter.otlp.errors
+// counter, then returns nil so the SDK never disables the reader (non-fatal).
 type errorCountingExporter struct {
-	inner  metric.Exporter
+	inner  sdkmetric.Exporter
 	logger *slog.Logger
+	target string // exporter.target label value
+
+	once       sync.Once
+	otlpErrors metric.Int64Counter // initialised lazily on first export
 }
 
-var _ metric.Exporter = (*errorCountingExporter)(nil)
+var _ sdkmetric.Exporter = (*errorCountingExporter)(nil)
+
+func (e *errorCountingExporter) initCounter() {
+	e.once.Do(func() {
+		meter := otel.GetMeterProvider().Meter("github.com/gjed/renovate-exporter")
+		ctr, err := meter.Int64Counter(
+			sc.MetricGitHubExporterOTLPErrors,
+			metric.WithDescription("Number of OTLP push failures."),
+			metric.WithUnit("{error}"),
+		)
+		if err != nil {
+			e.logger.Warn("failed to create otlp.errors counter", "err", err)
+			return
+		}
+		e.otlpErrors = ctr
+	})
+}
 
 func (e *errorCountingExporter) Export(ctx context.Context, rm *metricdata.ResourceMetrics) error {
 	err := e.inner.Export(ctx, rm)
 	if err != nil {
-		e.logger.Warn("OTLP export failed — will retry next cycle",
-			"err", err,
-		)
-		// The github_exporter.otlp.errors counter is recorded by the collection
-		// loop (internal/collector) which has access to the fully-initialised
-		// MeterProvider. This layer just logs and swallows so the exporter
-		// continues running (non-fatal, per spec).
+		e.logger.Warn("OTLP export failed — will retry next cycle", "err", err)
+		e.initCounter()
+		if e.otlpErrors != nil {
+			e.otlpErrors.Add(ctx, 1,
+				metric.WithAttributes(
+					attribute.String(sc.AttrExporterTarget, e.target),
+				),
+			)
+		}
 	}
-	return nil // always return nil to prevent SDK from disabling the reader
+	return nil // always nil — keeps the reader alive
 }
 
-func (e *errorCountingExporter) Temporality(k metric.InstrumentKind) metricdata.Temporality {
+func (e *errorCountingExporter) Temporality(k sdkmetric.InstrumentKind) metricdata.Temporality {
 	return e.inner.Temporality(k)
 }
 
-func (e *errorCountingExporter) Aggregation(k metric.InstrumentKind) metric.Aggregation {
+func (e *errorCountingExporter) Aggregation(k sdkmetric.InstrumentKind) sdkmetric.Aggregation {
 	return e.inner.Aggregation(k)
 }
 

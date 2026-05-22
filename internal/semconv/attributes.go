@@ -8,43 +8,35 @@ package semconv
 // All instrumentation MUST reference these constants — no magic strings.
 const (
 
-
-	// AttrExporterTarget is the key for the exporter.target attribute.
+// AttrExporterTarget is the key for the exporter.target attribute.
 	// The configured scrape target identifier (e.g., org/repo slug).
 	// Stability: development
 	AttrExporterTarget = "exporter.target"
-
-	// AttrGithubIssueLabel is the key for the github.issue.label attribute.
+// AttrGitHubIssueLabel is the key for the github.issue.label attribute.
 	// A label applied to the GitHub issue.
 	// Stability: development
-	AttrGithubIssueLabel = "github.issue.label"
-
-	// AttrGithubOrg is the key for the github.org attribute.
+	AttrGitHubIssueLabel = "github.issue.label"
+// AttrGitHubOrg is the key for the github.org attribute.
 	// GitHub organization or user account name.
 	// Stability: development
-	AttrGithubOrg = "github.org"
-
-	// AttrGithubPrLabel is the key for the github.pr.label attribute.
+	AttrGitHubOrg = "github.org"
+// AttrGitHubPrLabel is the key for the github.pr.label attribute.
 	// A label applied to the pull request.
 	// Stability: development
-	AttrGithubPrLabel = "github.pr.label"
-
-	// AttrGithubPrReviewstatus is the key for the github.pr.review_status attribute.
+	AttrGitHubPrLabel = "github.pr.label"
+// AttrGitHubPrReviewStatus is the key for the github.pr.review_status attribute.
 	// Aggregate review status of the pull request.
 	// Stability: development
-	AttrGithubPrReviewstatus = "github.pr.review_status"
-
-	// AttrGithubPrState is the key for the github.pr.state attribute.
+	AttrGitHubPrReviewStatus = "github.pr.review_status"
+// AttrGitHubPrState is the key for the github.pr.state attribute.
 	// Current state of the pull request.
 	// Stability: development
-	AttrGithubPrState = "github.pr.state"
-
-	// AttrGithubRepo is the key for the github.repo attribute.
+	AttrGitHubPrState = "github.pr.state"
+// AttrGitHubRepo is the key for the github.repo attribute.
 	// GitHub repository name (without org prefix).
 	// Stability: development
-	AttrGithubRepo = "github.repo"
-
-	// AttrRenovateDashboardSection is the key for the renovate.dashboard.section attribute.
+	AttrGitHubRepo = "github.repo"
+// AttrRenovateDashboardSection is the key for the renovate.dashboard.section attribute.
 	// Section within the Renovate dependency dashboard issue.
 	// Stability: development
 	AttrRenovateDashboardSection = "renovate.dashboard.section"
@@ -64,42 +56,28 @@ const (
 
 
 
-
-	// Values for github.pr.review_status
-
-	AttrGithubPrReviewstatusApproved = "approved"
-
-	AttrGithubPrReviewstatusChangesrequested = "changes_requested"
-
-	AttrGithubPrReviewstatusPending = "pending"
-
-	AttrGithubPrReviewstatusNone = "none"
+// Values for github.pr.review_status
+AttrGitHubPrReviewStatusApproved = "approved"
+AttrGitHubPrReviewStatusChangesRequested = "changes_requested"
+AttrGitHubPrReviewStatusPending = "pending"
+AttrGitHubPrReviewStatusNone = "none"
 
 
 
-
-	// Values for github.pr.state
-
-	AttrGithubPrStateOpen = "open"
-
-	AttrGithubPrStateClosed = "closed"
-
-	AttrGithubPrStateDraft = "draft"
+// Values for github.pr.state
+AttrGitHubPrStateOpen = "open"
+AttrGitHubPrStateClosed = "closed"
+AttrGitHubPrStateDraft = "draft"
 
 
 
 
 
-
-	// Values for renovate.dashboard.section
-
-	AttrRenovateDashboardSectionAwaitingschedule = "awaiting-schedule"
-
-	AttrRenovateDashboardSectionRatelimited = "rate-limited"
-
-	AttrRenovateDashboardSectionPendingapproval = "pending-approval"
-
-	AttrRenovateDashboardSectionPending = "pending"
+// Values for renovate.dashboard.section
+AttrRenovateDashboardSectionAwaitingSchedule = "awaiting-schedule"
+AttrRenovateDashboardSectionRateLimited = "rate-limited"
+AttrRenovateDashboardSectionPendingApproval = "pending-approval"
+AttrRenovateDashboardSectionPending = "pending"
 
 
 

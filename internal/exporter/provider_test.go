@@ -55,8 +55,10 @@ func TestNew_SetsGlobalMeterProvider(t *testing.T) {
 		_ = p.Shutdown(ctx)
 	})
 
-	if otel.GetMeterProvider() == nil {
-		t.Fatal("global MeterProvider not set")
+	// Verify the global provider is exactly the one we constructed, not the
+	// default noop provider (which is also non-nil).
+	if otel.GetMeterProvider() != p.MeterProvider() {
+		t.Fatal("global MeterProvider is not the provider returned by New()")
 	}
 }
 

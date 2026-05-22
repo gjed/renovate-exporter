@@ -15,13 +15,14 @@
 {% set panel_id = namespace(v=10) %}
 {% set pr_idx = namespace(v=0) %}
 {% for metric in ctx %}{% if "github.pr" in metric.metric_name %}
+{% set prom_name = metric.metric_name | replace('.', '_') %}
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "{{ metric.brief }}",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": {{ (pr_idx.v % 2) * 12 }}, "y": {{ 1 + (pr_idx.v // 2) * 8 }} },
       "id": {{ panel_id.v }},
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ metric.metric_name }}{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ prom_name }}{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "{{ metric.metric_name }}",
       "type": "timeseries"
     }
@@ -31,13 +32,14 @@
     ,{ "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 }, "id": 100, "title": "Issues", "type": "row" }
 {% set iss_idx = namespace(v=0) %}
 {% for metric in ctx %}{% if "github.issue" in metric.metric_name %}
+{% set prom_name = metric.metric_name | replace('.', '_') %}
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "{{ metric.brief }}",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": {{ (iss_idx.v % 2) * 12 }}, "y": {{ 51 + (iss_idx.v // 2) * 8 }} },
       "id": {{ 100 + iss_idx.v + 1 }},
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ metric.metric_name }}{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ prom_name }}{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "{{ metric.metric_name }}",
       "type": "timeseries"
     }
@@ -46,13 +48,14 @@
     ,{ "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 100 }, "id": 200, "title": "Renovate Dashboard", "type": "row" }
 {% set ren_idx = namespace(v=0) %}
 {% for metric in ctx %}{% if "renovate." in metric.metric_name %}
+{% set prom_name = metric.metric_name | replace('.', '_') %}
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "{{ metric.brief }}",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": {{ 101 + ren_idx.v * 8 }} },
       "id": {{ 200 + ren_idx.v + 1 }},
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ metric.metric_name }}{job=\"$job\"}", "legendFormat": "{{ '{{renovate_dashboard_section}}' }}", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ prom_name }}{job=\"$job\"}", "legendFormat": "{{ '{{renovate_dashboard_section}}' }}", "refId": "A" }],
       "title": "{{ metric.metric_name }}",
       "type": "timeseries"
     }
@@ -61,13 +64,14 @@
     ,{ "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 150 }, "id": 300, "title": "Exporter Self-Metrics", "type": "row" }
 {% set sel_idx = namespace(v=0) %}
 {% for metric in ctx %}{% if "github_exporter." in metric.metric_name %}
+{% set prom_name = metric.metric_name | replace('.', '_') %}
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "{{ metric.brief }}",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": {{ (sel_idx.v % 2) * 12 }}, "y": {{ 151 + (sel_idx.v // 2) * 8 }} },
       "id": {{ 300 + sel_idx.v + 1 }},
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ metric.metric_name }}{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "{{ prom_name }}{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "{{ metric.metric_name }}",
       "type": "timeseries"
     }
