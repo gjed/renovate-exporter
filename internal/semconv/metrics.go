@@ -7,53 +7,43 @@ package semconv
 // Metric name constants generated from the OTel Weaver registry.
 // All metric instrumentation MUST reference these constants — no magic strings.
 const (
-
-	// MetricGithubIssueAge is the metric name for github.issue.age.
+// MetricGitHubIssueAge is the metric name for github.issue.age.
 	// Age of an open GitHub issue in seconds (time since creation).
 	// Instrument: gauge, Unit: s, Stability: development
-	MetricGithubIssueAge = "github.issue.age"
-
-	// MetricGithubIssueCount is the metric name for github.issue.count.
+	MetricGitHubIssueAge = "github.issue.age"
+// MetricGitHubIssueCount is the metric name for github.issue.count.
 	// Number of open GitHub issues.
 	// Instrument: updowncounter, Unit: {issue}, Stability: development
-	MetricGithubIssueCount = "github.issue.count"
-
-	// MetricGithubPrAge is the metric name for github.pr.age.
+	MetricGitHubIssueCount = "github.issue.count"
+// MetricGitHubPrAge is the metric name for github.pr.age.
 	// Age of an open pull request in seconds (time since creation).
 	// Instrument: gauge, Unit: s, Stability: development
-	MetricGithubPrAge = "github.pr.age"
-
-	// MetricGithubPrAutomerged is the metric name for github.pr.automerged.
+	MetricGitHubPrAge = "github.pr.age"
+// MetricGitHubPrAutomerged is the metric name for github.pr.automerged.
 	// Total number of pull requests merged via automerge.
 	// Instrument: counter, Unit: {pr}, Stability: development
-	MetricGithubPrAutomerged = "github.pr.automerged"
-
-	// MetricGithubPrCloseDuration is the metric name for github.pr.close.duration.
+	MetricGitHubPrAutomerged = "github.pr.automerged"
+// MetricGitHubPrCloseDuration is the metric name for github.pr.close.duration.
 	// Time from PR creation to close (merged or declined) in seconds.
 	// Instrument: histogram, Unit: s, Stability: development
-	MetricGithubPrCloseDuration = "github.pr.close.duration"
-
-	// MetricGithubPrCount is the metric name for github.pr.count.
+	MetricGitHubPrCloseDuration = "github.pr.close.duration"
+// MetricGitHubPrCount is the metric name for github.pr.count.
 	// Number of open pull requests.
 	// Instrument: updowncounter, Unit: {pr}, Stability: development
-	MetricGithubPrCount = "github.pr.count"
-
-	// MetricGithubexporterApiErrors is the metric name for github_exporter.api.errors.
+	MetricGitHubPrCount = "github.pr.count"
+// MetricGitHubExporterApiErrors is the metric name for github_exporter.api.errors.
 	// Number of GitHub API errors encountered during collection.
 	// Instrument: counter, Unit: {error}, Stability: development
-	MetricGithubexporterApiErrors = "github_exporter.api.errors"
-
-	// MetricGithubexporterOtlpErrors is the metric name for github_exporter.otlp.errors.
+	MetricGitHubExporterApiErrors = "github_exporter.api.errors"
+// MetricGitHubExporterOTLPErrors is the metric name for github_exporter.otlp.errors.
 	// Number of OTLP push failures.
 	// Instrument: counter, Unit: {error}, Stability: development
-	MetricGithubexporterOtlpErrors = "github_exporter.otlp.errors"
-
-	// MetricGithubexporterScrapeDuration is the metric name for github_exporter.scrape.duration.
+	MetricGitHubExporterOTLPErrors = "github_exporter.otlp.errors"
+// MetricGitHubExporterScrapeDuration is the metric name for github_exporter.scrape.duration.
 	// Duration of a complete collection cycle in seconds.
 	// Instrument: histogram, Unit: s, Stability: development
-	MetricGithubexporterScrapeDuration = "github_exporter.scrape.duration"
-
-	// MetricRenovateDashboardQueue is the metric name for renovate.dashboard.queue.
+	MetricGitHubExporterScrapeDuration = "github_exporter.scrape.duration"
+// MetricRenovateDashboardQueue is the metric name for renovate.dashboard.queue.
 	// Number of pull requests in each section of the Renovate dependency dashboard.
 	// Instrument: gauge, Unit: {pr}, Stability: development
 	MetricRenovateDashboardQueue = "renovate.dashboard.queue"

@@ -9,10 +9,14 @@ package semconv
 const (
 {% for group in ctx %}
 {% for attr in group.attributes %}
-	// Attr{{ attr.name | pascal_case_const }} is the key for the {{ attr.name }} attribute.
+{%- set id = attr.name | pascal_case_const
+             | replace("Reviewstatus", "ReviewStatus")
+             | replace("Github", "GitHub")
+             | replace("Renovate", "Renovate") -%}
+	// Attr{{ id }} is the key for the {{ attr.name }} attribute.
 	// {{ attr.brief }}
 	// Stability: {{ attr.stability }}
-	Attr{{ attr.name | pascal_case_const }} = "{{ attr.name }}"
+	Attr{{ id }} = "{{ attr.name }}"
 {% endfor %}
 {% endfor %}
 )
@@ -22,9 +26,17 @@ const (
 {% for group in ctx %}
 {% for attr in group.attributes %}
 {% if attr.type is mapping and attr.type.members is defined %}
+{%- set attr_id = attr.name | pascal_case_const
+                  | replace("Reviewstatus", "ReviewStatus")
+                  | replace("Github", "GitHub") -%}
 	// Values for {{ attr.name }}
 {% for member in attr.type.members %}
-	Attr{{ attr.name | pascal_case_const }}{{ member.id | pascal_case_const }} = "{{ member.value }}"
+{%- set member_id = member.id | pascal_case_const
+                    | replace("Awaitingschedule", "AwaitingSchedule")
+                    | replace("Ratelimited", "RateLimited")
+                    | replace("Pendingapproval", "PendingApproval")
+                    | replace("Changesrequested", "ChangesRequested") -%}
+	Attr{{ attr_id }}{{ member_id }} = "{{ member.value }}"
 {% endfor %}
 {% endif %}
 {% endfor %}

@@ -25,7 +25,7 @@ func NewSelfMetrics() (*SelfMetrics, error) {
 	meter := otel.GetMeterProvider().Meter("github.com/gjed/renovate-exporter")
 
 	scrapeDuration, err := meter.Float64Histogram(
-		sc.MetricGithubexporterScrapeDuration,
+		sc.MetricGitHubExporterScrapeDuration,
 		metric.WithDescription("Duration of a complete collection cycle in seconds."),
 		metric.WithUnit("s"),
 		metric.WithExplicitBucketBoundaries(
@@ -37,7 +37,7 @@ func NewSelfMetrics() (*SelfMetrics, error) {
 	}
 
 	apiErrors, err := meter.Int64Counter(
-		sc.MetricGithubexporterApiErrors,
+		sc.MetricGitHubExporterApiErrors,
 		metric.WithDescription("Number of GitHub API errors encountered during collection."),
 		metric.WithUnit("{error}"),
 	)
@@ -46,7 +46,7 @@ func NewSelfMetrics() (*SelfMetrics, error) {
 	}
 
 	otlpErrors, err := meter.Int64Counter(
-		sc.MetricGithubexporterOtlpErrors,
+		sc.MetricGitHubExporterOTLPErrors,
 		metric.WithDescription("Number of OTLP push failures."),
 		metric.WithUnit("{error}"),
 	)
@@ -73,7 +73,7 @@ func (s *SelfMetrics) RecordScrapeDuration(ctx context.Context, target string, s
 }
 
 // RecordAPIError increments the API error counter.
-// target is the org/repo slug; endpoint is the GitHub API path that failed.
+// target is the org/repo slug (e.g. "my-org/my-repo").
 func (s *SelfMetrics) RecordAPIError(ctx context.Context, target string) {
 	s.apiErrors.Add(ctx, 1,
 		metric.WithAttributes(

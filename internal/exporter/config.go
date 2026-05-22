@@ -36,6 +36,10 @@ type Config struct {
 	// PrometheusAddr is the listen address for the /metrics HTTP server.
 	// Defaults to ":9090".
 	PrometheusAddr string
+
+	// Target is the exporter.target attribute value used in self-metrics
+	// (e.g. "my-org/my-repo"). Defaults to "default".
+	Target string
 }
 
 func (c *Config) defaults() {
@@ -47,5 +51,8 @@ func (c *Config) defaults() {
 	}
 	if c.PrometheusAddr == "" {
 		c.PrometheusAddr = ":9090"
+	}
+	if c.Target == "" {
+		c.Target = "default"
 	}
 }

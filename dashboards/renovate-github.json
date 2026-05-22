@@ -15,16 +15,18 @@
 
 
 
+
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "Age of an open pull request in seconds (time since creation).",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
       "id": 10,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github.pr.age{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_pr_age{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github.pr.age",
       "type": "timeseries"
     }
+
 
 
 
@@ -34,10 +36,11 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
       "id": 11,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github.pr.automerged{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_pr_automerged{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github.pr.automerged",
       "type": "timeseries"
     }
+
 
 
 
@@ -47,10 +50,11 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
       "id": 12,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github.pr.close.duration{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_pr_close_duration{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github.pr.close.duration",
       "type": "timeseries"
     }
+
 
 
 
@@ -60,7 +64,7 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
       "id": 13,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github.pr.count{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_pr_count{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github.pr.count",
       "type": "timeseries"
     }
@@ -70,16 +74,18 @@
     ,{ "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 }, "id": 100, "title": "Issues", "type": "row" }
 
 
+
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "Age of an open GitHub issue in seconds (time since creation).",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 51 },
       "id": 101,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github.issue.age{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_issue_age{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github.issue.age",
       "type": "timeseries"
     }
+
 
 
     ,{
@@ -88,7 +94,7 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 51 },
       "id": 102,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github.issue.count{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_issue_count{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github.issue.count",
       "type": "timeseries"
     }
@@ -97,13 +103,14 @@
     ,{ "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 100 }, "id": 200, "title": "Renovate Dashboard", "type": "row" }
 
 
+
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "Number of pull requests in each section of the Renovate dependency dashboard.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 101 },
       "id": 201,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "renovate.dashboard.queue{job=\"$job\"}", "legendFormat": "{{renovate_dashboard_section}}", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "renovate_dashboard_queue{job=\"$job\"}", "legendFormat": "{{renovate_dashboard_section}}", "refId": "A" }],
       "title": "renovate.dashboard.queue",
       "type": "timeseries"
     }
@@ -112,16 +119,18 @@
     ,{ "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 150 }, "id": 300, "title": "Exporter Self-Metrics", "type": "row" }
 
 
+
     ,{
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "description": "Number of GitHub API errors encountered during collection.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 151 },
       "id": 301,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_exporter.api.errors{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_exporter_api_errors{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github_exporter.api.errors",
       "type": "timeseries"
     }
+
 
 
     ,{
@@ -130,10 +139,11 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 151 },
       "id": 302,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_exporter.otlp.errors{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_exporter_otlp_errors{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github_exporter.otlp.errors",
       "type": "timeseries"
     }
+
 
 
     ,{
@@ -142,7 +152,7 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 159 },
       "id": 303,
-      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_exporter.scrape.duration{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "github_exporter_scrape_duration{job=\"$job\"}", "legendFormat": "__auto", "refId": "A" }],
       "title": "github_exporter.scrape.duration",
       "type": "timeseries"
     }
