@@ -71,15 +71,18 @@ func New(target config.Target, lister RepoLister, opts ...Option) *Discoverer {
 	return d
 }
 
-// Repos returns the current snapshot of discovered repositories.
+// Repos returns a snapshot copy of the current discovered repositories.
 // It performs an initial discovery on first call if the list is empty.
+// The returned slice is safe to read without a lock; callers must not modify it.
 func (d *Discoverer) Repos(ctx context.Context) ([]Repo, error) {
 	d.mu.RLock()
 	repos := d.repos
 	d.mu.RUnlock()
 
 	if repos != nil {
-		return repos, nil
+		cp := make([]Repo, len(repos))
+		copy(cp, repos)
+		return cp, nil
 	}
 
 	// Initial discovery.
@@ -115,7 +118,11 @@ func (d *Discoverer) refresh(ctx context.Context) ([]Repo, error) {
 
 	if len(d.target.Repos) > 0 {
 		// Explicit repo list mode: bypass API.
-		repos = parseExplicitRepos(d.target.Repos)
+		var err error
+		repos, err = parseExplicitRepos(d.target.Repos)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		// Org autodiscovery mode.
 		var err error
@@ -130,7 +137,10 @@ func (d *Discoverer) refresh(ctx context.Context) ([]Repo, error) {
 	d.mu.Unlock()
 
 	d.logDiscovered(repos)
-	return repos, nil
+	// Return a copy so callers cannot mutate the internal cache.
+	cp := make([]Repo, len(repos))
+	copy(cp, repos)
+	return cp, nil
 }
 
 // discoverOrgs lists repos for all configured orgs and deduplicates.
@@ -213,13 +223,17 @@ func (d *Discoverer) listOrgRepos(ctx context.Context, orgCfg config.OrgConfig) 
 }
 
 // parseExplicitRepos converts "owner/name" strings into Repo values.
-func parseExplicitRepos(explicit []string) []Repo {
+// Returns an error if any entry is not in "owner/name" format.
+func parseExplicitRepos(explicit []string) ([]Repo, error) {
 	repos := make([]Repo, 0, len(explicit))
 	for _, s := range explicit {
 		owner, name := splitOwnerRepo(s)
+		if owner == "" || name == "" {
+			return nil, fmt.Errorf("explicit repo %q is not in owner/name format", s)
+		}
 		repos = append(repos, Repo{Owner: owner, Name: name, FullName: s})
 	}
-	return repos
+	return repos, nil
 }
 
 // splitOwnerRepo splits "owner/name" into its two components.
@@ -234,10 +248,17 @@ func splitOwnerRepo(full string) (owner, name string) {
 }
 
 // matchesAny returns true if name matches at least one glob pattern.
+// Invalid patterns are logged as warnings and treated as non-matching.
 func matchesAny(name string, patterns []string) bool {
 	for _, pat := range patterns {
 		ok, err := filepath.Match(pat, name)
-		if err == nil && ok {
+		if err != nil {
+			// filepath.Match only errors on malformed syntax (e.g. unclosed bracket).
+			// Log and skip rather than silently dropping the pattern.
+			slog.Warn("invalid glob pattern — skipping", "pattern", pat, "err", err)
+			continue
+		}
+		if ok {
 			return true
 		}
 	}

@@ -190,14 +190,28 @@ func (t *rateLimitTransport) RoundTrip(req *http.Request) (*http.Response, error
 
 	// Parse REST rate limit headers.
 	if rem := resp.Header.Get("X-RateLimit-Remaining"); rem != "" {
-		remaining, _ := strconv.Atoi(rem)
-		var resetAt time.Time
-		if resetStr := resp.Header.Get("X-RateLimit-Reset"); resetStr != "" {
-			if resetUnix, err := strconv.ParseInt(resetStr, 10, 64); err == nil {
-				resetAt = time.Unix(resetUnix, 0)
+		remaining, err := strconv.Atoi(rem)
+		if err != nil {
+			// Malformed header — skip the update rather than defaulting to 0
+			// (defaulting to 0 would spuriously trigger the pause logic).
+			t.client.logger.Debug("ignoring malformed X-RateLimit-Remaining header", "value", rem)
+		} else {
+			var resetAt time.Time
+			if resetStr := resp.Header.Get("X-RateLimit-Reset"); resetStr != "" {
+				if resetUnix, err := strconv.ParseInt(resetStr, 10, 64); err == nil {
+					resetAt = time.Unix(resetUnix, 0)
+				}
 			}
+			// Only enter paused state if we have a valid future reset time.
+			// Without a reset time, pause would block indefinitely (zero time → no wait).
+			if remaining < rateLimitPauseThreshold && resetAt.IsZero() {
+				t.client.logger.Warn("rate limit low but X-RateLimit-Reset missing; applying 60s fallback backoff",
+					"remaining", remaining,
+				)
+				resetAt = time.Now().Add(60 * time.Second)
+			}
+			t.client.updateRateLimit(remaining, resetAt)
 		}
-		t.client.updateRateLimit(remaining, resetAt)
 	}
 
 	return resp, nil
@@ -207,12 +221,19 @@ func (t *rateLimitTransport) RoundTrip(req *http.Request) (*http.Response, error
 // authenticatorTokenSource: bridges Authenticator to oauth2.TokenSource.
 // ---------------------------------------------------------------------------
 
+// tokenFetchTimeout is the maximum time allowed to fetch/refresh a token.
+// oauth2.TokenSource.Token() has no context parameter, so we enforce a
+// deadline here to prevent unbounded hangs on network stalls.
+const tokenFetchTimeout = 30 * time.Second
+
 type authenticatorTokenSource struct {
 	auth Authenticator
 }
 
 func (s *authenticatorTokenSource) Token() (*oauth2.Token, error) {
-	tok, err := s.auth.Token(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), tokenFetchTimeout)
+	defer cancel()
+	tok, err := s.auth.Token(ctx)
 	if err != nil {
 		return nil, err
 	}

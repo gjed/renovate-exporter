@@ -67,12 +67,13 @@ func TestLoad(t *testing.T) {
 			check: func(t *testing.T, cfg *config.Config) {
 				t.Helper()
 				app := cfg.Targets[0].Auth.App
-				// After resolveEnvVars: PrivateKeyEnv holds the actual value, path cleared.
-				if app.PrivateKeyEnv != "base64pemcontent==" {
-					t.Errorf("expected private key value in PrivateKeyEnv, got %q", app.PrivateKeyEnv)
+				// PrivateKeyEnv retains the original env var name.
+				if app.PrivateKeyEnv != "TEST_GITHUB_APP_KEY" {
+					t.Errorf("expected PrivateKeyEnv to retain env var name, got %q", app.PrivateKeyEnv)
 				}
-				if app.PrivateKeyPath != "" {
-					t.Errorf("expected PrivateKeyPath to be cleared, got %q", app.PrivateKeyPath)
+				// PrivateKeyValue holds the resolved base64-encoded PEM.
+				if app.PrivateKeyValue != "base64pemcontent==" {
+					t.Errorf("expected PrivateKeyValue to hold resolved key, got %q", app.PrivateKeyValue)
 				}
 			},
 		},
