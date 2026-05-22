@@ -54,13 +54,13 @@ go install github.com/gjed/renovate-exporter/cmd/renovate-exporter@latest
 
 ## Configuration
 
-| Flag | Env | Default | Description |
-|------|-----|---------|-------------|
-| `--orgs` | `RENOVATE_ORGS` | — | Comma-separated GitHub orgs to scrape |
-| `--repos` | `RENOVATE_REPOS` | — | Comma-separated `owner/repo` pairs to scrape |
-| `--listen-address` | `LISTEN_ADDRESS` | `:9090` | Address to expose metrics on |
-| `--github-api-base-url` | `GITHUB_API_BASE_URL` | `https://api.github.com` | GitHub API base URL (useful for GHES) |
-| `--interval` | `SCRAPE_INTERVAL` | `5m` | How often to poll the GitHub API |
+| Flag                    | Env                   | Default                  | Description                                  |
+| ----------------------- | --------------------- | ------------------------ | -------------------------------------------- |
+| `--orgs`                | `RENOVATE_ORGS`       | —                        | Comma-separated GitHub orgs to scrape        |
+| `--repos`               | `RENOVATE_REPOS`      | —                        | Comma-separated `owner/repo` pairs to scrape |
+| `--listen-address`      | `LISTEN_ADDRESS`      | `:9090`                  | Address to expose metrics on                 |
+| `--github-api-base-url` | `GITHUB_API_BASE_URL` | `https://api.github.com` | GitHub API base URL (useful for GHES)        |
+| `--interval`            | `SCRAPE_INTERVAL`     | `5m`                     | How often to poll the GitHub API             |
 
 Set `GITHUB_TOKEN` (or pass `--github-token`) with a token that has `repo` read access.
 
@@ -68,12 +68,12 @@ Set `GITHUB_TOKEN` (or pass `--github-token`) with a token that has `repo` read 
 
 All metrics are prefixed with `renovate_` and conform to the OTel registry schema in [`registry/`](registry/).
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `renovate_prs_open` | Gauge | Open Renovate PRs per repo and dependency type |
-| `renovate_prs_merged_total` | Counter | Merged Renovate PRs |
-| `renovate_prs_closed_total` | Counter | Closed (rejected) Renovate PRs |
-| `renovate_pr_age_seconds` | Histogram | Age of open Renovate PRs |
+| Metric                      | Type      | Description                                    |
+| --------------------------- | --------- | ---------------------------------------------- |
+| `renovate_prs_open`         | Gauge     | Open Renovate PRs per repo and dependency type |
+| `renovate_prs_merged_total` | Counter   | Merged Renovate PRs                            |
+| `renovate_prs_closed_total` | Counter   | Closed (rejected) Renovate PRs                 |
+| `renovate_pr_age_seconds`   | Histogram | Age of open Renovate PRs                       |
 
 ## Development
 
@@ -116,26 +116,26 @@ make generate
 
 ## CI
 
-| Job | Trigger | Description |
-|-----|---------|-------------|
-| `lint` | every PR + push to `main` | golangci-lint |
-| `test` | every PR + push to `main` | `go test -race`, JUnit XML upload, coverage PR comment |
-| `build` | every PR + push to `main` | `go build ./...` for `linux/amd64` |
-| `check-generated` | every PR + push to `main` | Fails if `make generate` produces uncommitted changes |
+| Job                 | Trigger                   | Description                                               |
+| ------------------- | ------------------------- | --------------------------------------------------------- |
+| `lint`              | every PR + push to `main` | golangci-lint                                             |
+| `test`              | every PR + push to `main` | `go test -race`, JUnit XML upload, coverage PR comment    |
+| `build`             | every PR + push to `main` | `go build ./...` for `linux/amd64`                        |
+| `check-generated`   | every PR + push to `main` | Fails if `make generate` produces uncommitted changes     |
 | `registry-validate` | every PR + push to `main` | Weaver schema check + emit smoke-test (separate workflow) |
-| `integration-test` | PRs targeting `main` | Starts exporter + mock GitHub API, runs Weaver live-check |
-| `release` | push to `main` | semantic-release → GoReleaser → GHCR |
+| `integration-test`  | PRs targeting `main`      | Starts exporter + mock GitHub API, runs Weaver live-check |
+| `release`           | push to `main`            | semantic-release → GoReleaser → GHCR                      |
 
 ## Release
 
 Releases are fully automated. Merge to `main` and semantic-release determines the next version from [conventional commits](https://www.conventionalcommits.org/):
 
-| Commit prefix | Version bump |
-|---------------|-------------|
-| `feat:` | minor |
-| `fix:`, `perf:` | patch |
-| `feat!:` / `BREAKING CHANGE:` | major |
-| `chore:`, `docs:`, `test:` | no release |
+| Commit prefix                 | Version bump |
+| ----------------------------- | ------------ |
+| `feat:`                       | minor        |
+| `fix:`, `perf:`               | patch        |
+| `feat!:` / `BREAKING CHANGE:` | major        |
+| `chore:`, `docs:`, `test:`    | no release   |
 
 ## License
 
