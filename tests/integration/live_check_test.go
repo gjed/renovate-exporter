@@ -4,8 +4,8 @@
 // emitted OTLP stream against the Weaver registry schema.
 //
 // Prerequisites:
-//   - `weaver` binary on PATH (run scripts/install-weaver.sh in CI)
-//   - No live OTLP collector needed; weaver live-check starts its own receiver
+//   - Docker (preferred) or `weaver` binary on PATH
+//   - If using the binary: run scripts/install-weaver.sh
 //
 // Run:
 //
@@ -18,6 +18,9 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -28,10 +31,13 @@ import (
 	sc "github.com/gjed/renovate-exporter/internal/semconv"
 )
 
+const weaverVersion = "0.23.0"
+const weaverImage = "otel/weaver:v" + weaverVersion
+
 // TestLiveCheck_ConformsToSchema starts the exporter with stub metric
 // emissions and runs `weaver registry live-check` to assert schema compliance.
 func TestLiveCheck_ConformsToSchema(t *testing.T) {
-	weaverBin := requireWeaver(t)
+	runner := requireWeaverRunner(t)
 
 	// Pick a free OTLP port for the live-check receiver.
 	otlpPort := freePort(t)
@@ -65,16 +71,10 @@ func TestLiveCheck_ConformsToSchema(t *testing.T) {
 	}
 
 	// Run `weaver registry live-check` against our registry.
-	// It connects to the OTLP endpoint, receives metrics, and validates them.
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx,
-		weaverBin,
-		"registry", "live-check",
-		"-r", "../../registry/",
-		"--otlp-endpoint", fmt.Sprintf("localhost:%d", otlpPort),
-	)
+	cmd := runner.liveCheckCmd(ctx, otlpPort)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -87,7 +87,7 @@ func TestLiveCheck_ConformsToSchema(t *testing.T) {
 // type (integer instead of string for github.org) and asserts live-check
 // returns non-zero.
 func TestLiveCheck_SchemaViolationDetected(t *testing.T) {
-	weaverBin := requireWeaver(t)
+	runner := requireWeaverRunner(t)
 
 	otlpPort := freePort(t)
 	otlpEndpoint := fmt.Sprintf("http://localhost:%d", otlpPort)
@@ -119,12 +119,7 @@ func TestLiveCheck_SchemaViolationDetected(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx,
-		weaverBin,
-		"registry", "live-check",
-		"-r", "../../registry/",
-		"--otlp-endpoint", fmt.Sprintf("localhost:%d", otlpPort),
-	)
+	cmd := runner.liveCheckCmd(ctx, otlpPort)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -135,16 +130,72 @@ func TestLiveCheck_SchemaViolationDetected(t *testing.T) {
 	t.Logf("weaver live-check correctly detected violation: %v", err)
 }
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+// ── weaver runner ─────────────────────────────────────────────────────────────
 
-func requireWeaver(t *testing.T) string {
-	t.Helper()
-	bin, err := exec.LookPath("weaver")
-	if err != nil {
-		t.Skip("weaver binary not found on PATH — run scripts/install-weaver.sh")
-	}
-	return bin
+// weaverRunner abstracts running weaver via Docker or a local binary.
+type weaverRunner struct {
+	useDocker   bool
+	registryDir string // absolute path to registry/ on the host
 }
+
+// requireWeaverRunner returns a weaverRunner, preferring Docker when available.
+// Skips the test if neither Docker nor the weaver binary is found.
+func requireWeaverRunner(t *testing.T) weaverRunner {
+	t.Helper()
+
+	// Locate the registry/ directory relative to this test file.
+	_, thisFile, _, _ := runtime.Caller(0)
+	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..")
+	registryDir, err := filepath.Abs(filepath.Join(repoRoot, "registry"))
+	if err != nil {
+		t.Fatalf("resolve registry path: %v", err)
+	}
+
+	// Prefer Docker.
+	if dockerBin, err := exec.LookPath("docker"); err == nil {
+		if out, err := exec.Command(dockerBin, "info").CombinedOutput(); err == nil && !strings.Contains(string(out), "ERROR") {
+			t.Logf("using Docker to run weaver (%s)", weaverImage)
+			return weaverRunner{useDocker: true, registryDir: registryDir}
+		}
+	}
+
+	// Fall back to local binary.
+	if _, err := exec.LookPath("weaver"); err == nil {
+		t.Logf("using local weaver binary")
+		return weaverRunner{useDocker: false, registryDir: registryDir}
+	}
+
+	t.Skip("neither Docker nor weaver binary found — run scripts/install-weaver.sh or ensure Docker is running")
+	return weaverRunner{}
+}
+
+// liveCheckCmd builds the exec.Cmd for `weaver registry live-check`.
+// When running via Docker, --network host is used so the container can reach
+// the OTLP port opened by the test process on localhost.
+func (r weaverRunner) liveCheckCmd(ctx context.Context, otlpPort int) *exec.Cmd {
+	if r.useDocker {
+		args := []string{
+			"run", "--rm",
+			"--network", "host", // reach localhost OTLP port from inside container
+			"--mount", fmt.Sprintf("type=bind,source=%s,target=/workspace/registry,readonly", r.registryDir),
+			"--env", "HOME=/tmp/weaver",
+			weaverImage,
+			"registry", "live-check",
+			"-r", "/workspace/registry/",
+			"--otlp-endpoint", fmt.Sprintf("localhost:%d", otlpPort),
+		}
+		return exec.CommandContext(ctx, "docker", args...)
+	}
+
+	return exec.CommandContext(ctx,
+		"weaver",
+		"registry", "live-check",
+		"-r", r.registryDir+"/",
+		"--otlp-endpoint", fmt.Sprintf("localhost:%d", otlpPort),
+	)
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 func freePort(t *testing.T) int {
 	t.Helper()
