@@ -1,0 +1,140 @@
+groups:
+  # ── GitHub Pull Request Metrics ──────────────────────────────────────────────
+
+  - id: metric.github.pr.count
+    type: metric
+    metric_name: github.pr.count
+    instrument: updowncounter
+    unit: "{pr}"
+    stability: development
+    brief: Number of open pull requests.
+    note: >
+      Decrements when a PR is closed or merged.
+      Use the `github.pr.state` attribute to distinguish open vs draft PRs.
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+      - ref: github.pr.state
+      - ref: github.pr.label
+        requirement_level: opt_in
+      - ref: github.pr.review_status
+        requirement_level: opt_in
+
+  - id: metric.github.pr.age
+    type: metric
+    metric_name: github.pr.age
+    instrument: gauge
+    unit: s
+    stability: development
+    brief: Age of an open pull request in seconds (time since creation).
+    note: >
+      Recorded per-PR. Consumers can compute percentiles across the gauge
+      readings. The gauge is removed when the PR is closed.
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+      - ref: github.pr.state
+      - ref: github.pr.label
+        requirement_level: opt_in
+
+  - id: metric.github.pr.close.duration
+    type: metric
+    metric_name: github.pr.close.duration
+    instrument: histogram
+    unit: s
+    stability: development
+    brief: Time from PR creation to close (merged or declined) in seconds.
+    note: >
+      Only recorded when a PR transitions to the closed state.
+      Bucket boundaries should cover typical PR lifetimes (hours to weeks).
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+
+  - id: metric.github.pr.automerged
+    type: metric
+    metric_name: github.pr.automerged
+    instrument: counter
+    unit: "{pr}"
+    stability: development
+    brief: Total number of pull requests that were merged via automerge.
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+
+  # ── GitHub Issue Metrics ─────────────────────────────────────────────────────
+
+  - id: metric.github.issue.count
+    type: metric
+    metric_name: github.issue.count
+    instrument: updowncounter
+    unit: "{issue}"
+    stability: development
+    brief: Number of open GitHub issues.
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+      - ref: github.issue.label
+        requirement_level: opt_in
+
+  - id: metric.github.issue.age
+    type: metric
+    metric_name: github.issue.age
+    instrument: gauge
+    unit: s
+    stability: development
+    brief: Age of an open GitHub issue in seconds (time since creation).
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+
+  # ── Renovate Dashboard Metrics ───────────────────────────────────────────────
+
+  - id: metric.renovate.dashboard.queue
+    type: metric
+    metric_name: renovate.dashboard.queue
+    instrument: gauge
+    unit: "{pr}"
+    stability: development
+    brief: Number of pull requests in each section of the Renovate dependency dashboard.
+    note: >
+      The dashboard issue sections (awaiting-schedule, rate-limited, etc.)
+      are parsed from the issue body and reported per section.
+    attributes:
+      - ref: github.org
+      - ref: github.repo
+      - ref: renovate.dashboard.section
+
+  # ── Exporter Self-Metrics ────────────────────────────────────────────────────
+
+  - id: metric.github_exporter.scrape.duration
+    type: metric
+    metric_name: github_exporter.scrape.duration
+    instrument: histogram
+    unit: s
+    stability: development
+    brief: Duration of a complete collection cycle in seconds.
+    note: >
+      Recorded once per collection cycle after all GitHub API calls complete.
+    attributes:
+      - ref: exporter.target
+
+  - id: metric.github_exporter.api.errors
+    type: metric
+    metric_name: github_exporter.api.errors
+    instrument: counter
+    unit: "{error}"
+    stability: development
+    brief: Number of GitHub API errors encountered during collection.
+    attributes:
+      - ref: exporter.target
+
+  - id: metric.github_exporter.otlp.errors
+    type: metric
+    metric_name: github_exporter.otlp.errors
+    instrument: counter
+    unit: "{error}"
+    stability: development
+    brief: Number of OTLP push failures.
+    attributes:
+      - ref: exporter.target
