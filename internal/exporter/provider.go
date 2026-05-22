@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	promexporter "go.opentelemetry.io/otel/exporters/prometheus"
+	"github.com/prometheus/otlptranslator"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
@@ -91,7 +92,14 @@ func New(ctx context.Context, cfg Config, logger *slog.Logger) (*Provider, error
 	var promReg *prometheus.Registry
 	if cfg.PrometheusEnabled {
 		promReg = prometheus.NewRegistry()
-		promExp, err := promexporter.New(promexporter.WithRegisterer(promReg))
+		// WithTranslationStrategy(NoUTF8EscapingWithSuffixes) preserves OTel
+		// dotted metric names (e.g. github.pr.count) in the Prometheus exposition
+		// output. This requires Grafana / Prometheus to be configured with the
+		// UTF-8 name validation scheme (prometheus.model.NameValidationScheme=utf8).
+		promExp, err := promexporter.New(
+			promexporter.WithRegisterer(promReg),
+			promexporter.WithTranslationStrategy(otlptranslator.NoUTF8EscapingWithSuffixes),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("exporter: build Prometheus bridge: %w", err)
 		}
