@@ -21,7 +21,8 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          # renovate: datasource=github-releases depName=golangci/golangci-lint
+          version: v1.64.8
 
   check-generated:
     name: Check Generated Files
@@ -58,7 +59,8 @@ jobs:
           cache: true
 
       - name: Install gotestsum
-        run: go install gotest.tools/gotestsum@latest
+        # renovate: datasource=github-releases depName=gotestyourself/gotestsum
+        run: go install gotest.tools/gotestsum@v1.12.1
 
       - name: Run tests
         run: |
@@ -84,19 +86,21 @@ jobs:
           name: coverage
           path: coverage.out
 
+      - name: Compute coverage percentage
+        id: coverage
+        run: |
+          PCT=$(go tool cover -func=coverage.out | awk '/^total:/{print $3}')
+          echo "pct=$PCT" >> "$GITHUB_OUTPUT"
+
       - name: Post coverage comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         continue-on-error: true
+        env:
+          COVERAGE_PCT: ${{ steps.coverage.outputs.pct }}
         with:
           script: |
-            const fs = require('fs');
-            const coverage = fs.readFileSync('coverage.out', 'utf8');
-            const lines = coverage.split('\n');
-            // Parse total coverage from last line
-            const totalLine = lines.filter(l => l.startsWith('total:')).pop();
-            if (!totalLine) return;
-            const pct = totalLine.match(/[\d.]+%/)?.[0] ?? 'unknown';
+            const pct = process.env.COVERAGE_PCT || 'unknown';
             const body = `### Test Coverage\n\nTotal coverage: **${pct}**`;
             // Find existing comment and update, or create new
             const { data: comments } = await github.rest.issues.listComments({
@@ -158,7 +162,7 @@ jobs:
       - name: Set up Weaver
         uses: ./.github/actions/setup-weaver
         with:
-          weaver-version: "0.12.0"
+          weaver-version: "0.12.0" # weaver
 
       - name: Build exporter binary
         run: go build -o ./bin/renovate-exporter ./cmd/renovate-exporter/
@@ -171,10 +175,12 @@ jobs:
           for i in $(seq 1 10); do
             if curl -sf http://localhost:18080/health > /dev/null 2>&1; then
               echo "Mock server ready"
-              break
+              exit 0
             fi
             sleep 1
           done
+          echo "Mock server did not become healthy in time"
+          exit 1
 
       - name: Start exporter and wait for healthz
         run: |
@@ -186,10 +192,12 @@ jobs:
           for i in $(seq 1 30); do
             if curl -sf http://localhost:9090/healthz > /dev/null 2>&1; then
               echo "Exporter ready"
-              break
+              exit 0
             fi
             sleep 1
           done
+          echo "Exporter did not become healthy in time"
+          exit 1
 
       - name: Weaver live-check
         run: |

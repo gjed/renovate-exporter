@@ -46,9 +46,11 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        // Write release notes to a temp file for GoReleaser to use
-        prepareCmd:
-          'echo "${nextRelease.notes}" > /tmp/release-notes.md',
+        // generateNotesCmd receives the release notes on stdin, avoiding
+        // shell expansion of commit message content (no ${nextRelease.notes}
+        // substitution in the shell command itself).
+        generateNotesCmd:
+          "node scripts/write-release-notes.js",
         publishCmd:
           "goreleaser release --clean --release-notes /tmp/release-notes.md",
       },
