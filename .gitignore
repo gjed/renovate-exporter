@@ -23,5 +23,5 @@ Thumbs.db
 *.swp
 *.swo
 
-# package-lock.json is intentionally committed for reproducible installs
-# (do NOT add package-lock.json here)
+# pnpm-lock.yaml is intentionally committed for reproducible installs
+# (do NOT add pnpm-lock.yaml here)
