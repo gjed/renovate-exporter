@@ -52,7 +52,7 @@ module.exports = {
         generateNotesCmd:
           "node scripts/write-release-notes.js",
         publishCmd:
-          "goreleaser release --clean --release-notes /tmp/release-notes.md",
+          "GORELEASER_CURRENT_TAG=${nextRelease.gitTag} goreleaser release --clean --release-notes /tmp/release-notes.md",
       },
     ],
     [
