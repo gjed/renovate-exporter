@@ -182,7 +182,6 @@ func (a *AppAuthenticator) fetchInstallationToken(ctx context.Context) (string, 
 		return "", time.Time{}, fmt.Errorf("reading installation token response: %w", err)
 	}
 
-	// Use encoding/json
 	if err := parseJSON(body, &result); err != nil {
 		return "", time.Time{}, fmt.Errorf("parsing installation token response: %w", err)
 	}

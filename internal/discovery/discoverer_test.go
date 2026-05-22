@@ -3,7 +3,6 @@ package discovery_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -375,17 +374,13 @@ func TestDiscoverer_IncrementalRefresh(t *testing.T) {
 		discovery.WithRefreshInterval(100*time.Millisecond),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	go d.Start(ctx)
 
-	// Wait for initial discovery.
-	time.Sleep(50 * time.Millisecond)
-	initial, err := d.Repos(ctx)
-	if err != nil {
-		t.Fatalf("initial Repos(): %v", err)
-	}
+	// Poll until initial discovery produces exactly 1 repo (or deadline).
+	initial := pollUntil(t, ctx, d, 1)
 	if len(initial) != 1 {
 		t.Fatalf("expected 1 repo initially, got %d", len(initial))
 	}
@@ -395,16 +390,35 @@ func TestDiscoverer_IncrementalRefresh(t *testing.T) {
 	apiRepos = append(apiRepos, makeRepo("myorg/beta", false, false))
 	mu.Unlock()
 
-	// Wait for at least one refresh cycle (100ms interval + processing time).
-	time.Sleep(300 * time.Millisecond)
-	updated, err := d.Repos(ctx)
-	if err != nil {
-		t.Fatalf("updated Repos(): %v", err)
-	}
+	// Poll until the refresh produces 2 repos (or deadline).
+	updated := pollUntil(t, ctx, d, 2)
 	if len(updated) != 2 {
 		t.Errorf("expected 2 repos after refresh, got %d: %v", len(updated), repoNames(updated))
 	}
 }
 
-// Ensure fmt is used (needed for potential future test helpers).
-var _ = fmt.Sprintf
+// pollUntil polls d.Repos until len(repos) == want or ctx expires.
+func pollUntil(t *testing.T, ctx context.Context, d interface {
+	Repos(context.Context) ([]discovery.Repo, error)
+}, want int) []discovery.Repo {
+	t.Helper()
+	for {
+		repos, err := d.Repos(ctx)
+		if err != nil {
+			if ctx.Err() != nil {
+				t.Fatalf("context expired while polling for %d repos: %v", want, ctx.Err())
+			}
+			t.Logf("Repos() error (retrying): %v", err)
+		}
+		if len(repos) == want {
+			return repos
+		}
+		select {
+		case <-ctx.Done():
+			t.Fatalf("timed out waiting for %d repos; last count: %d", want, len(repos))
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+}
+
+

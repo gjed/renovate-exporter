@@ -37,7 +37,13 @@ type AppAuth struct {
 	AppID          int64  `mapstructure:"app_id"`
 	InstallationID int64  `mapstructure:"installation_id"`
 	PrivateKeyPath string `mapstructure:"private_key_path"`
-	PrivateKeyEnv  string `mapstructure:"private_key_env"`
+	// PrivateKeyEnv is the name of the env var holding a base64-encoded PEM private key.
+	// After config loading, the resolved key material is in PrivateKeyValue; PrivateKeyEnv
+	// retains the original env var name for diagnostics.
+	PrivateKeyEnv   string `mapstructure:"private_key_env"`
+	// PrivateKeyValue is populated by Load from the env var named in PrivateKeyEnv.
+	// It holds the raw base64-encoded PEM; it is never set from the config file.
+	PrivateKeyValue string `mapstructure:"-"`
 }
 
 // OrgConfig defines per-organisation discovery settings.
@@ -102,9 +108,9 @@ func resolveEnvVars(cfg *Config) error {
 			if val == "" {
 				return fmt.Errorf("target %q: env var %q (auth.app.private_key_env) is not set or empty", t.Name, t.Auth.App.PrivateKeyEnv)
 			}
-			// Store base64-encoded PEM; callers decode it.
-			t.Auth.App.PrivateKeyPath = ""           // clear path so callers use env value
-			t.Auth.App.PrivateKeyEnv = val            // repurpose: now holds the actual value
+			// Store the resolved base64-encoded PEM in PrivateKeyValue.
+			// PrivateKeyEnv retains the original env var name for diagnostics.
+			t.Auth.App.PrivateKeyValue = val
 		}
 	}
 	return nil

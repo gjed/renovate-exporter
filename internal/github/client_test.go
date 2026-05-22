@@ -72,7 +72,7 @@ func TestClient_PauseBelowThreshold(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		n := callCount.Add(1)
 		if n == 1 {
-			// First call: set remaining below threshold, reset in 300ms.
+			// First call: set remaining below threshold; reset in ~1-2s (Unix truncation).
 			w.Header().Set("X-RateLimit-Remaining", "50")
 			w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", resetTime))
 		} else {
@@ -104,7 +104,7 @@ func TestClient_PauseBelowThreshold(t *testing.T) {
 	}
 
 	start := time.Now()
-	// Second call: should wait until resetTime (≈300ms away).
+	// Second call: should wait until resetTime (~1-2s away due to Unix truncation).
 	_, _, _ = c.REST().Repositories.Get(ctx, "owner", "repo")
 	elapsed := time.Since(start)
 

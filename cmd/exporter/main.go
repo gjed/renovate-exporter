@@ -76,9 +76,9 @@ func buildAuthenticator(a config.Auth) (internalgithub.Authenticator, error) {
 	switch {
 	case a.App.PrivateKeyPath != "":
 		opts.PrivateKeyPath = a.App.PrivateKeyPath
-	case a.App.PrivateKeyEnv != "":
-		// After config.Load resolveEnvVars: PrivateKeyEnv holds the actual base64 value.
-		opts.PrivateKeyBase64 = a.App.PrivateKeyEnv
+	case a.App.PrivateKeyValue != "":
+		// PrivateKeyValue is the resolved base64-encoded PEM from the env var.
+		opts.PrivateKeyBase64 = a.App.PrivateKeyValue
 	}
 
 	return internalgithub.NewAppAuthenticator(opts)
