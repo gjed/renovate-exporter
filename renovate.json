@@ -19,8 +19,8 @@
       "groupName": "Go dependencies"
     },
     {
-      "matchManagers": ["npm"],
-      "matchFileNames": ["package.json"],
+      "matchManagers": ["pnpm"],
+      "matchFileNames": ["pnpm-lock.yaml"],
       "groupName": "semantic-release plugins",
       "automerge": true,
       "automergeType": "pr"
