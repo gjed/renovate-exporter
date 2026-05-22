@@ -29,7 +29,8 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           install-only: true
-          version: latest
+          # renovate: datasource=github-releases depName=goreleaser/goreleaser
+          version: v2.9.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
