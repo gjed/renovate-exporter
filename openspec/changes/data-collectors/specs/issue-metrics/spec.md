@@ -7,7 +7,7 @@ The system SHALL record `github.issue.count` as an UpDownCounter broken down by 
 #### Scenario: Open issues counted per repo
 
 - **WHEN** a repo has 5 open issues
-- **THEN** `github.issue.count{github.pr.state="open"}` = 5 for that repo
+- **THEN** `github.issue.count{github.issue.state="open"}` = 5 for that repo
 
 ### Requirement: Issue count by label
 
