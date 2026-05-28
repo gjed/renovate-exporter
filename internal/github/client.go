@@ -43,10 +43,10 @@ type Client struct {
 	graphql *githubv4.Client
 
 	// Rate limit state
-	mu         sync.Mutex
-	rlState    RateLimitState
-	rlPaused   bool
-	rlHooks    []RateLimitHook
+	mu       sync.Mutex
+	rlState  RateLimitState
+	rlPaused bool
+	rlHooks  []RateLimitHook
 
 	// baseURL allows tests to override the GitHub API URL.
 	baseURL string
@@ -81,7 +81,7 @@ func NewClient(auth Authenticator, opts ...ClientOption) (*Client, error) {
 	c := &Client{
 		auth:    auth,
 		logger:  slog.Default(),
-		baseURL: "https://api.github.com",
+		baseURL: defaultGitHubAPIURL,
 	}
 	for _, o := range opts {
 		o(c)
@@ -92,7 +92,7 @@ func NewClient(auth Authenticator, opts ...ClientOption) (*Client, error) {
 	oauthTransport := &oauth2.Transport{Source: tokenSource, Base: transport}
 	httpClient := &http.Client{Transport: oauthTransport}
 
-	if c.baseURL == "https://api.github.com" {
+	if c.baseURL == defaultGitHubAPIURL {
 		c.rest = github.NewClient(httpClient)
 		c.graphql = githubv4.NewClient(httpClient)
 	} else {
